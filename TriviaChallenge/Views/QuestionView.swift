@@ -8,6 +8,7 @@
 import SwiftUI
 
 struct QuestionView: View {
+    @EnvironmentObject var triviaManager: TriviaManager
     var body: some View {
         VStack(spacing: 40) {
             HStack(spacing: 10) {
@@ -15,24 +16,31 @@ struct QuestionView: View {
                     .blueTitle()
                 Spacer()
                 
-                Text("1 out of 10")
+                Text("\(triviaManager.index + 1) out of \(triviaManager.length)")
                     .foregroundColor(Color("AccentColor"))
                     .fontWeight(.heavy)
             }
             
-            ProgressBar(progress: 40)
+            ProgressBar(progress: triviaManager.progress)
             
             VStack(alignment: .leading, spacing: 40) {
-                Text("What word represents the letter &#039;T&#039; in the NATO phonetic alphabet?")
+                Text(triviaManager.question)
                     .font(.system(size: 20))
                     .bold()
                 
-                AnswerRow(answer: Answer(text: "Tango", isCorrect: true))
-                
-                AnswerRow(answer: Answer(text: "Texas", isCorrect: false))
+                ForEach(triviaManager.answerChoices, id: \.id) {
+                    answer in AnswerRow(answer: answer)
+                        .environmentObject(triviaManager)
+                }
             }
             
-            PrimaryButton(text: "Next")
+            Button {
+                triviaManager.goToNextQuestion()
+            } label: {
+                PrimaryButton(text: "Next", background: triviaManager.answerSelected ? Color("AccentColor") : Color("LightGray"))
+            }
+            .disabled(!triviaManager.answerSelected)
+            
             Spacer()
         }
         .padding()
@@ -45,5 +53,6 @@ struct QuestionView: View {
 struct QuestionView_Previews: PreviewProvider {
     static var previews: some View {
         QuestionView()
+            .environmentObject(TriviaManager())
     }
 }
